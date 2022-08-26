@@ -196,6 +196,20 @@ module.exports = function (webpackEnv) {
     return loaders;
   };
 
+  const internalModules = [
+    'bands',
+    'benchmark',
+    'communicate',
+    'integrations',
+    'internal',
+    'offers',
+    'plan',
+    'settings',
+    'shared',
+    'team',
+    'marketing_signup_flow',
+  ].map((internalModule) => path.join(paths.ownPath, `packages/${internalModule}`));
+
   return {
     target: ['browserslist'],
     // Webpack noise constrained to errors and warnings
@@ -296,6 +310,7 @@ module.exports = function (webpackEnv) {
               // https://github.com/facebook/create-react-app/issues/2488
               ascii_only: true,
             },
+            parallel: 4
           },
         }),
         // This is only used in production mode
@@ -418,6 +433,7 @@ module.exports = function (webpackEnv) {
               include: paths.appSrc,
               loader: require.resolve('babel-loader'),
               options: {
+                include: internalModules,
                 customize: require.resolve(
                   'babel-preset-react-app/webpack-overrides'
                 ),
@@ -601,6 +617,11 @@ module.exports = function (webpackEnv) {
             // Make sure to add the new loader(s) before the "file" loader.
           ],
         },
+        {
+          test: /\.mjs$/,
+          include: /node_modules/,
+          type: 'javascript/auto',
+        }
       ].filter(Boolean),
     },
     plugins: [
@@ -770,7 +791,7 @@ module.exports = function (webpackEnv) {
           formatter: require.resolve('react-dev-utils/eslintFormatter'),
           eslintPath: require.resolve('eslint'),
           failOnError: !(isEnvDevelopment && emitErrorsAsWarnings),
-          context: paths.appSrc,
+          context: paths.ownPath,
           cache: true,
           cacheLocation: path.resolve(
             paths.appNodeModules,
